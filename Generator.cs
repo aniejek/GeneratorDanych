@@ -39,6 +39,8 @@ namespace GeneratorDanych
         int minFixPrice=20;
         int maxFixPrice=60;
 
+        int kliB;
+
         DateTime startDate = new DateTime(2010, 10, 10);
         DateTime endDate = new DateTime(2011, 10, 10);
 
@@ -65,6 +67,7 @@ namespace GeneratorDanych
             this.sqlConnection = sqlConnection;
             this.sqlConnection.Open();
             this.random = new Random();
+            this.kliB = NextKliB();
         }
         public void Generate()
         {
@@ -97,7 +100,7 @@ namespace GeneratorDanych
             int maxEvents = events;
             int maxDays = this.endDate.Subtract(this.startDate).Days;
             int days = maxDays - 1;
-            int kliB = NextKliB();
+            
             while (events > 0)
             {
                 int action = random.Next(events);
@@ -109,9 +112,7 @@ namespace GeneratorDanych
                 events -= 1;
                 if (action < refuelingsNumber)
                 {
-                    int spacecraftId = GetRandomSpacecraft();
-                    SaveRefueling(random.Next(minRefuelingLiters, maxRefuelingLiters), spacecraftId, RandomString(10, 20),
-                        random.Next(minRefuelingTime, maxRefuelingTime), random.Next(minWaitingTime, maxWaitingTime));
+                    AddRandomRefueling();
                     refuelingsNumber -= 1;
                     continue;
                 }
@@ -121,13 +122,7 @@ namespace GeneratorDanych
                 }
                 if (action < fixesNumber)
                 {
-                    int spacecraftId = GetRandomSpacecraft();
-                    int partId = GetRandomPart();
-                    int engineerId = GetRandomEngineer();
-                    string hangarColour = GetRandomHangar();
-                    SaveFix(random.Next(minFixCost, maxFixCost), random.Next(minFixTime, maxFixTime), random.Next(minFixPrice, maxFixPrice),
-                        engineerId, kliB, DateToString(currentDate), spacecraftId, partId, hangarColour);
-                    kliB += 1;
+                    AddRandomFix(currentDate);
                     fixesNumber -= 1;
                     continue;
                 }
@@ -205,6 +200,22 @@ namespace GeneratorDanych
         private void AddRandomEngineer(DateTime engageDate)
         {
             //throw new NotImplementedException();
+        }
+        private void AddRandomRefueling()
+        {
+            int spacecraftId = GetRandomSpacecraft();
+            SaveRefueling(random.Next(minRefuelingLiters, maxRefuelingLiters), spacecraftId, RandomString(10, 20),
+                random.Next(minRefuelingTime, maxRefuelingTime), random.Next(minWaitingTime, maxWaitingTime));
+        }
+        private void AddRandomFix(DateTime currentDate)
+        {
+            int spacecraftId = GetRandomSpacecraft();
+            int partId = GetRandomPart();
+            int engineerId = GetRandomEngineer();
+            string hangarColour = GetRandomHangar();
+            SaveFix(random.Next(minFixCost, maxFixCost), random.Next(minFixTime, maxFixTime), random.Next(minFixPrice, maxFixPrice),
+                engineerId, kliB, DateToString(currentDate), spacecraftId, partId, hangarColour);
+            this.kliB += 1;
         }
         private void FireEngineer(DateTime fireDate)
         {
