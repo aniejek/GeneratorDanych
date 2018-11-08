@@ -5,7 +5,7 @@ drop table hangary;
 drop table statki;
 
 create table Czesci(
-	id int not null primary key,
+	id int identity(1,1) not null primary key,
 	typ varchar(20) not null,
 	producent varchar(15) not null
 );
@@ -15,24 +15,24 @@ create table Hangary(
 );
 
 create table Statki(
-	id int not null primary key,
+	id int identity(1,1) not null primary key,
 	model varchar(25) not null,
 	rocznik int not null
 );
 
 create table Tankowania(
-	id int not null primary key,
+	id int identity(1,1) not null primary key,
 	litry int not null,
 	id_statku int not null foreign key references Statki(id),
 	rodzaj_paliwa varchar(20) not null,
-	czas_tankowania int not null,
-	czas_oczekiwania int not null
+	czas_tankowania real not null,
+	czas_oczekiwania real not null
 );
 
 create table Naprawy(
-	id int not null primary key,
+	id int identity(1,1) not null primary key,
 	koszt int not null,
-	czas int not null,
+	czas real not null,
 	cena int not null,
 	id_inzyniera int not null,
 	numer_platnosci_kliB int not null,

@@ -23,6 +23,7 @@ namespace GeneratorDanych
             };
             var generator = new Generator(sqlConnection);
             generator.Generate();
+
             generator.CloseGenerator();
         }
     }
