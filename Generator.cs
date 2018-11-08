@@ -100,9 +100,14 @@ namespace GeneratorDanych
             int maxEvents = events;
             int maxDays = this.endDate.Subtract(this.startDate).Days;
             int days = maxDays - 1;
-            
+            int percent = 0;
             while (events > 0)
             {
+                if ((maxEvents - events) * 100.0 / maxEvents > percent)
+                {
+                    percent += 1;
+                    Console.WriteLine("{0}% done", percent);
+                }
                 int action = random.Next(events);
                 if ((events * 1.0 / maxEvents) < (days * 1.0 / maxDays))
                 {
