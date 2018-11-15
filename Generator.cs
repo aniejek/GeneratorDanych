@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,9 +41,11 @@ namespace GeneratorDanych
         int maxFixPrice=60;
 
         int kliB;
+        int engineers;
+        string csvName = "inzynierowie.csv";
 
-        DateTime startDate = new DateTime(2010, 10, 10);
-        DateTime endDate = new DateTime(2011, 10, 10);
+        DateTime startDate = new DateTime(2012, 10, 10);
+        DateTime endDate = new DateTime(2013, 10, 10);
 
         Random random;
 
@@ -71,6 +74,12 @@ namespace GeneratorDanych
         }
         public void Generate()
         {
+            if (!File.Exists(csvName))
+            {
+                File.WriteAllText(csvName, "Id,GPI,Nazwisko,Rok przyjęcia,Miesiąc przyjęcia,Rok zwolnienia,Miesiąc zwolnienia");
+            }
+            var lines = File.ReadAllLines(csvName);
+            engineers = lines.Length - 1;
             DateTime currentDate = startDate;
             for (int i = 0; i < this.partsNumber; i++)
             {
@@ -137,7 +146,7 @@ namespace GeneratorDanych
                 }
                 if (action < engineersFired)
                 {
-                    AddRandomEngineer(currentDate);
+                    FireEngineer(currentDate);
                     engineersFired -= 1;
                     continue;
                 }
@@ -147,7 +156,7 @@ namespace GeneratorDanych
                 }
                 if (action < t2EngineersNumber)
                 {
-                    FireEngineer(currentDate);
+                    AddRandomEngineer(currentDate);
                     t2EngineersNumber -= 1;
                     continue;
                 }
@@ -204,7 +213,12 @@ namespace GeneratorDanych
         }
         private void AddRandomEngineer(DateTime engageDate)
         {
-            //throw new NotImplementedException();
+            int id = engineers;
+            int gid = random.Next(0, 100000);
+            string name = RandomString(5, 15);
+            string line = '\n' + String.Format("{0},{1},{2},{3:yyyy,MM}",id, gid, name, engageDate);
+            File.AppendAllText(csvName, line);
+            engineers += 1;
         }
         private void AddRandomRefueling()
         {
@@ -224,7 +238,21 @@ namespace GeneratorDanych
         }
         private void FireEngineer(DateTime fireDate)
         {
-            //throw new NotImplementedException();
+            var csvFie = File.ReadAllLines(csvName);
+            int engineer = random.Next(1, engineers);
+            var engineerLine = csvFie[engineer];
+            while (engineerLine.Split(',').Length > 5)
+            {
+                engineer = random.Next(1, engineers);
+                engineerLine = csvFie[engineer];
+            }
+            if (engineerLine[engineerLine.Length - 1] == '\n')
+            {
+                engineerLine = engineerLine.Remove(engineerLine.Length - 1);
+            }
+            engineerLine += String.Format(",{0:yyyy,MM}", fireDate);
+            csvFie[engineer] = engineerLine;
+            File.WriteAllText(csvName, String.Join("\n", csvFie));
         }
         private int NextKliB()
         {
@@ -256,8 +284,15 @@ namespace GeneratorDanych
         }
         private int GetRandomEngineer()
         {
-            //throw new NotImplementedException();
-            return random.Next(initialEngineersNumber + t2EngineersNumber);
+            var csvFie = File.ReadAllLines(csvName);
+            int engineer = random.Next(1, engineers);
+            var engineerLine = csvFie[engineer];
+            while (engineerLine.Split(',').Length > 5)
+            {
+                engineer = random.Next(1, engineers);
+                engineerLine = csvFie[engineer];
+            }
+            return engineer;
         }
         private void SaveRefueling(int litres, int spacecraftId, string fuelType, int refuelingTime, int waitingTime)
         {
