@@ -44,8 +44,8 @@ namespace GeneratorDanych
         int engineers;
         string csvName = "inzynierowie.csv";
 
-        DateTime startDate = new DateTime(2012, 10, 10);
-        DateTime endDate = new DateTime(2013, 10, 10);
+        DateTime startDate = new DateTime(2012, 4, 10);
+        DateTime endDate = new DateTime(2012, 10, 10);
 
         Random random;
 
@@ -76,7 +76,7 @@ namespace GeneratorDanych
         {
             if (!File.Exists(csvName))
             {
-                File.WriteAllText(csvName, "Id,GPI,Nazwisko,Rok przyjęcia,Miesiąc przyjęcia,Rok zwolnienia,Miesiąc zwolnienia");
+                File.WriteAllText(csvName, "Id,GPI,Nazwisko,Id mistrza,Liczba firm,Rok przyjęcia,Miesiąc przyjęcia,Rok zwolnienia,Miesiąc zwolnienia");
             }
             var lines = File.ReadAllLines(csvName);
             engineers = lines.Length - 1;
@@ -191,25 +191,22 @@ namespace GeneratorDanych
             int subtraction = this.endDate.Subtract(this.startDate).Days;
             Console.WriteLine(subtraction);
             Console.WriteLine((int)(this.endDate.Subtract(this.startDate).Days));
-            /*
-            this.SavePart("jakis", "jakas");
-            this.SaveHangar("blu");
-            this.SaveSpacecraft("jakis", 1990);
-            this.SaveRefueling(1, 1, "ropa", 1, 1);
-            this.SaveFix(1, 1, 1, 1, 1, "2018-10-10", 1, 1, "blu");
-            */
         }
         private void AddRandomPart()
         {
             this.SavePart(this.RandomString(5, 15), this.RandomString(10, 20));
         }
-        private void AddRandomSpacecraft()
-        {
-            this.SaveSpacecraft(this.RandomString(15, 25), this.random.Next(this.spacecraftsYearsFrom, this.spacecraftsYearsTo));
-        }
         private void AddRandomHangar()
         {
             this.SaveHangar(this.RandomString(5, 10));
+        }
+        private void AddRandomSpacecraft()
+        {
+            this.SaveSpacecraft(this.random.Next(this.spacecraftsYearsFrom, this.spacecraftsYearsTo));
+        }
+        private void AddRandomModel()
+        {
+
         }
         private void AddRandomEngineer(DateTime engageDate)
         {
@@ -315,11 +312,11 @@ namespace GeneratorDanych
                 colour);
             cmd.ExecuteNonQuery();
         }
-        private void SaveSpacecraft(string model, int year)
+        private void SaveSpacecraft(int year)
         {
             var cmd = this.sqlConnection.CreateCommand();
-            cmd.CommandText = String.Format("insert into Statki(model, rocznik) values('{0}', '{1}');",
-                model, year);
+            cmd.CommandText = String.Format("insert into Statki(rocznik) values('{0}');",
+                year);
             cmd.ExecuteNonQuery();
         }
         private void SaveFix(int cost, int time, int price, int engineerId, int kliB, string date, int spacecraftId, int partId, string hangarColour)

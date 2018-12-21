@@ -13,13 +13,21 @@ namespace GeneratorDanych
         {
             var sqlConnection = new SqlConnection()
             {
-                ConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;" +
-                "Initial Catalog=hd;" +
+                ConnectionString = "Data Source=DESKTOP-RTFFVHK;" +
+                "Initial Catalog=srt;" +
                 "Integrated Security=True;" +
                 "Connect Timeout=30;" +
                 "Encrypt=False;" +
                 "TrustServerCertificate=False;" +
-                "ApplicationIntent=ReadWrite;MultiSubnetFailover=False"
+                "ApplicationIntent=ReadWrite;" +
+                "MultiSubnetFailover=False"
+                //"Data Source=(localdb)\\MSSQLLocalDB;" +
+                //"Initial Catalog=hd;" +
+                //"Integrated Security=True;" +
+                //"Connect Timeout=30;" +
+                //"Encrypt=False;" +
+                //"TrustServerCertificate=False;" +
+                //"ApplicationIntent=ReadWrite;MultiSubnetFailover=False"
             };
             var generator = new Generator(sqlConnection);
             generator.Generate();

@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project1
+namespace GeneratorDanych
 {
-    class Generator
+    class Generator2
     {
         private static readonly Random rnd = new Random();
 
@@ -45,9 +45,9 @@ namespace Project1
             File.AppendAllText(csvpath, csvcontent.ToString());
         }
 
-        static void Main(string[] args)
-        {
-            GenerateEmployee();
-        }
+        //static void Main(string[] args)
+        //{
+        //    GenerateEmployee();
+        //}
     }
 }
