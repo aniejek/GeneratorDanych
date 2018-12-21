@@ -1,0 +1,11 @@
+﻿################################################################################
+# Ten plik .gitignore został utworzony automatycznie przez Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/GeneratorDanych/v15/Server/sqlite3
+/.vs/GeneratorDanych/v15
+/bin/Debug
+/obj/x86/Debug
+/GeneratorDanych.csproj
+/GeneratorDanych.csproj.user
+/GeneratorDanych.sln

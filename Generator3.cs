@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace GeneratorDanych
 {
-    class Generator
+    class Generator3
     {
         SqlConnection sqlConnection;
 
@@ -102,7 +102,7 @@ namespace GeneratorDanych
             return String.Format("{0:yyyy-MM-dd}", date);
         }
 
-        public Generator(SqlConnection sqlConnection, int elo=1)
+        public Generator3(SqlConnection sqlConnection, int elo=1)
         {
             this.sqlConnection = sqlConnection;
             this.sqlConnection.Open();
