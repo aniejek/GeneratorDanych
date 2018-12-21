@@ -3,6 +3,8 @@ drop table tankowania;
 drop table czesci;
 drop table hangary;
 drop table statki;
+drop table modele;
+drop table serwisy;
 
 create table Czesci(
 	id int identity(1,1) not null primary key,
@@ -16,9 +18,24 @@ create table Hangary(
 
 create table Statki(
 	id int identity(1,1) not null primary key,
-	model varchar(25) not null,
 	rocznik int not null
 );
+
+create table Modele(
+	id int identity(1,1) not null primary key,
+	nazwa varchar(15) not null,
+	marka varchar(10) not null,
+	rodzaj varchar(20) not null
+);
+
+create table Serwisy(
+	id int identity(1,1) not null primary key,
+	klucze bit not null,
+	wiertatki bit not null,
+	srubokrety bit not null,
+	smary int not null,
+	sruby int not null
+)
 
 create table Tankowania(
 	id int identity(1,1) not null primary key,
@@ -39,5 +56,7 @@ create table Naprawy(
 	data date not null,
 	id_statku int not null foreign key references Statki(id),
 	id_czesci int not null foreign key references Czesci(id),
-	kolor_hangaru varchar(10) not null foreign key references Hangary(kolor)
+	kolor_hangaru varchar(10) not null foreign key references Hangary(kolor),
+	id_modelu int not null foreign key references Modele(id),
+	id_serwisu int not null foreign key references Serwisy(id)
 );
