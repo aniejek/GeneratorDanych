@@ -31,7 +31,7 @@ create table Modele(
 create table Serwisy(
 	id int identity(1,1) not null primary key,
 	klucze bit not null,
-	wiertatki bit not null,
+	wiertarki bit not null,
 	srubokrety bit not null,
 	smary int not null,
 	sruby int not null

@@ -31,6 +31,12 @@ namespace GeneratorDanych
         int spacecraftsYearsFrom=1990;
         int spacecraftsYearsTo=1999;
 
+        int modelsNumber= 20;
+
+        int servicesNumber = 50;
+        int maxGrease = 10;
+        int maxScrews = 10;
+
         int refuelingsNumber=1000;
         int minRefuelingLiters=10;
         int maxRefuelingLiters=30;
@@ -66,12 +72,10 @@ namespace GeneratorDanych
             }
             return ret;
         }
-
         private string DateToString(DateTime date)
         {
             return String.Format("{0:yyyy-MM-dd}", date);
         }
-
         public Generator(SqlConnection sqlConnection, int elo=1)
         {
             this.sqlConnection = sqlConnection;
@@ -106,6 +110,19 @@ namespace GeneratorDanych
             }
             this.spacecraftsNumber = 0;
             Console.WriteLine("Dodano rekordy satków kosmicznych.");
+            foreach (var keyVal in models)
+            {
+                for (int i = 0; i < keyVal.Value.Length; i++)
+                {
+                    SaveModel(keyVal.Value[i].Item1, keyVal.Key, keyVal.Value[i].Item2);
+                }
+            }
+            Console.WriteLine("Dodano rekordy modeli.");
+            for (int i = 0; i < servicesNumber; i++)
+            {
+                this.AddRandomService();
+            }
+            Console.WriteLine("Dodano serwisy.");
             for (int i = 0; i < this.initialEngineersNumber; i++)
             {
                 this.AddRandomEngineer(currentDate);
@@ -173,6 +190,12 @@ namespace GeneratorDanych
                 }
             }
         }
+
+        private void AddRandomService()
+        {
+            this.SaveService(this.random.Next(2), this.random.Next(2), this.random.Next(2), this.random.Next(maxGrease), this.random.Next(maxScrews));
+        }
+
         public void CloseGenerator()
         {
             this.sqlConnection.Close();
@@ -210,10 +233,6 @@ namespace GeneratorDanych
         private void AddRandomSpacecraft()
         {
             this.SaveSpacecraft(this.random.Next(this.spacecraftsYearsFrom, this.spacecraftsYearsTo));
-        }
-        private void AddRandomModel()
-        {
-
         }
         private void AddRandomEngineer(DateTime engageDate)
         {
@@ -386,14 +405,14 @@ namespace GeneratorDanych
         private void SaveModel(string name, string brand, string type)
         {
             var cmd = this.sqlConnection.CreateCommand();
-            cmd.CommandText = String.Format("insert into Modele(nazwa, marka, rodzaj) values ('{0}', '{1}', {2}');",
+            cmd.CommandText = String.Format("insert into Modele(nazwa, marka, rodzaj) values ('{0}', '{1}', '{2}');",
                 name, brand, type);
             cmd.ExecuteNonQuery();
         }
         private void SaveService(int wrenches, int drills, int screwdrivers, int grease, int screws)
         {
             var cmd = this.sqlConnection.CreateCommand();
-            cmd.CommandText = String.Format("insert into Serwisy(klucze, wiertarki, srubokrety, smary, sruby values ('{0}', '{1}', '{2}', '{3}', '{4}');",
+            cmd.CommandText = String.Format("insert into Serwisy(klucze, wiertarki, srubokrety, smary, sruby) values ('{0}', '{1}', '{2}', '{3}', '{4}');",
                 wrenches, drills, screwdrivers, grease, screws);
             cmd.ExecuteNonQuery();
         }
