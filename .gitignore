@@ -9,3 +9,5 @@
 /GeneratorDanych.csproj
 /GeneratorDanych.csproj.user
 /GeneratorDanych.sln
+/bin/Release
+/obj/x86/Release

@@ -11,7 +11,14 @@ namespace GeneratorDanych
     class Generator
     {
         SqlConnection sqlConnection;
-
+        Dictionary<string, Tuple<string, string>[]> models = new Dictionary<string, Tuple<string, string>[]>() {
+            { "idua", new Tuple<string, string>[]{ new Tuple<string, string>("A3-2", "krazawnik"), Tuple.Create("A6-012", "statek turystyczny") } },
+            { "wmb", new Tuple<string, string>[]{ new Tuple<string, string>("K9-A46", "krazawnik"), new Tuple<string, string>("K2-931", "statek turystyczny"), new Tuple<string, string>("K20-V53", "transporter") } },
+            { "lepo", new Tuple<string, string>[]{ new Tuple<string, string>("APOLLO-G20", "transporter"), new Tuple<string, string>("ZEUS-C", "statek turystyczny") } },
+            { "Oowead", new Tuple<string, string>[]{ new Tuple<string, string>("Spaghetti-7" ,"krazawnik")} },
+            { "sedecrem", new Tuple<string, string>[]{ new Tuple<string, string>("FALCON-42", "transporter"), new Tuple<string, string>("FALCON-533", "transporter") } },
+        };
+        List<string> colors = new List<string>() { "green", "red", "yellow", "blue", "pink", "white", "black", "purple", "orange", "lightblue", "darkblue", "gray" };
         int initialEngineersNumber=20;
         int t2EngineersNumber=10;
         int engineersFired=5;
@@ -211,9 +218,38 @@ namespace GeneratorDanych
         private void AddRandomEngineer(DateTime engageDate)
         {
             int id = engineers;
-            int gid = random.Next(0, 100000);
+            
+            var csvFile = File.ReadAllLines(csvName);
+            int gpi = random.Next(0, 100000);
+            bool gpiNotUnique = false;
+            foreach (var engineer in csvFile)
+            {
+                if (engineer.Split(',')[1] == String.Format("{0}", gpi))
+                {
+                    gpiNotUnique = true;
+                    break;
+                }
+            }
+            while (gpiNotUnique)
+            {
+                gpiNotUnique = false;
+                gpi = random.Next(0, 100000);
+                foreach (var engineer in csvFile)
+                {
+                    if (engineer.Split(',')[1] == String.Format("{0}", gpi))
+                    {
+                        gpiNotUnique = true;
+                        break;
+                    }
+                }
+            }
+            string master = "";
+            if (random.NextDouble() < 1f / 3f)
+            {
+                master = String.Format("{0}", GetRandomMaster());
+            }
             string name = RandomString(5, 15);
-            string line = '\n' + String.Format("{0},{1},{2},{3:yyyy,MM}",id, gid, name, engageDate);
+            string line = '\n' + String.Format("{0},{1},{2},{3},{4:yyyy,MM}",id, gpi, name, master, engageDate);
             File.AppendAllText(csvName, line);
             engineers += 1;
         }
@@ -229,27 +265,24 @@ namespace GeneratorDanych
             int partId = GetRandomPart();
             int engineerId = GetRandomEngineer();
             string hangarColour = GetRandomHangar();
+            int modelId = GetRandomModel();
+            int serviceId = GetRandomService();
             SaveFix(random.Next(minFixCost, maxFixCost), random.Next(minFixTime, maxFixTime), random.Next(minFixPrice, maxFixPrice),
-                engineerId, kliB, DateToString(currentDate), spacecraftId, partId, hangarColour);
+                engineerId, kliB, DateToString(currentDate), spacecraftId, partId, hangarColour, modelId, serviceId);
             this.kliB += 1;
         }
         private void FireEngineer(DateTime fireDate)
         {
-            var csvFie = File.ReadAllLines(csvName);
-            int engineer = random.Next(1, engineers);
-            var engineerLine = csvFie[engineer];
-            while (engineerLine.Split(',').Length > 5)
-            {
-                engineer = random.Next(1, engineers);
-                engineerLine = csvFie[engineer];
-            }
+            var csvFile = File.ReadAllLines(csvName);
+            int engineer = GetRandomEngineer();
+            var engineerLine = csvFile[engineer];
             if (engineerLine[engineerLine.Length - 1] == '\n')
             {
                 engineerLine = engineerLine.Remove(engineerLine.Length - 1);
             }
             engineerLine += String.Format(",{0:yyyy,MM}", fireDate);
-            csvFie[engineer] = engineerLine;
-            File.WriteAllText(csvName, String.Join("\n", csvFie));
+            csvFile[engineer] = engineerLine;
+            File.WriteAllText(csvName, String.Join("\n", csvFile));
         }
         private int NextKliB()
         {
@@ -279,17 +312,41 @@ namespace GeneratorDanych
             cmd.CommandText = GetRandomRow("kolor", "hangary");
             return (string)cmd.ExecuteScalar();
         }
+        private int GetRandomModel()
+        {
+            var cmd = sqlConnection.CreateCommand();
+            cmd.CommandText = GetRandomRow("id", "modele");
+            return (int)cmd.ExecuteScalar();
+        }
+        private int GetRandomService()
+        {
+            var cmd = sqlConnection.CreateCommand();
+            cmd.CommandText = GetRandomRow("id", "serwisy");
+            return (int)cmd.ExecuteScalar();
+        }
         private int GetRandomEngineer()
         {
-            var csvFie = File.ReadAllLines(csvName);
+            var csvFile = File.ReadAllLines(csvName);
             int engineer = random.Next(1, engineers);
-            var engineerLine = csvFie[engineer];
-            while (engineerLine.Split(',').Length > 5)
+            var engineerLine = csvFile[engineer];
+            while (engineerLine.Split(',').Length > 7)
             {
                 engineer = random.Next(1, engineers);
-                engineerLine = csvFie[engineer];
+                engineerLine = csvFile[engineer];
             }
             return engineer;
+        }
+        private int GetRandomMaster()
+        {
+            var csvFile = File.ReadAllLines(csvName);
+            int master = GetRandomEngineer();
+            var masterLine = csvFile[master];
+            while (masterLine.Split(',')[3] != "")
+            {
+                master = GetRandomEngineer();
+                masterLine = csvFile[master];
+            }
+            return master;
         }
         private void SaveRefueling(int litres, int spacecraftId, string fuelType, int refuelingTime, int waitingTime)
         {
@@ -319,11 +376,25 @@ namespace GeneratorDanych
                 year);
             cmd.ExecuteNonQuery();
         }
-        private void SaveFix(int cost, int time, int price, int engineerId, int kliB, string date, int spacecraftId, int partId, string hangarColour)
+        private void SaveFix(int cost, int time, int price, int engineerId, int kliB, string date, int spacecraftId, int partId, string hangarColour, int modelId, int serviceId)
         {
             var cmd = this.sqlConnection.CreateCommand();
-            cmd.CommandText = String.Format("insert into Naprawy(koszt, czas, cena, id_inzyniera, numer_platnosci_kliB, data, id_statku, id_czesci, kolor_hangaru) values('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}');",
-                cost, time, price, engineerId, kliB, date, spacecraftId, partId, hangarColour);
+            cmd.CommandText = String.Format("insert into Naprawy(koszt, czas, cena, id_inzyniera, numer_platnosci_kliB, data, id_statku, id_czesci, kolor_hangaru, id_modelu, id_serwisu) values('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{10}');",
+                cost, time, price, engineerId, kliB, date, spacecraftId, partId, hangarColour, modelId, serviceId);
+            cmd.ExecuteNonQuery();
+        }
+        private void SaveModel(string name, string brand, string type)
+        {
+            var cmd = this.sqlConnection.CreateCommand();
+            cmd.CommandText = String.Format("insert into Modele(nazwa, marka, rodzaj) values ('{0}', '{1}', {2}');",
+                name, brand, type);
+            cmd.ExecuteNonQuery();
+        }
+        private void SaveService(int wrenches, int drills, int screwdrivers, int grease, int screws)
+        {
+            var cmd = this.sqlConnection.CreateCommand();
+            cmd.CommandText = String.Format("insert into Serwisy(klucze, wiertarki, srubokrety, smary, sruby values ('{0}', '{1}', '{2}', '{3}', '{4}');",
+                wrenches, drills, screwdrivers, grease, screws);
             cmd.ExecuteNonQuery();
         }
     }
