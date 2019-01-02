@@ -18,20 +18,24 @@ namespace GeneratorDanych
             { "Oowead", new Tuple<string, string>[]{ new Tuple<string, string>("Spaghetti-7" ,"krazawnik")} },
             { "sedecrem", new Tuple<string, string>[]{ new Tuple<string, string>("FALCON-42", "transporter"), new Tuple<string, string>("FALCON-533", "transporter") } },
         };
-        List<string> colors = new List<string>() { "green", "red", "yellow", "blue", "pink", "white", "black", "purple", "orange", "lightblue", "darkblue", "gray" };
+
+        string[] colors = { "green", "red", "yellow", "blue", "pink", "white", "black", "purple", "orange", "lightblue", "darkblue", "gray" };
+        string[] producents = { "SpaceX", "Blue Origin", "Lockheed Martin", "Rotary Rocket", "McDonnell Douglas", "Orbital ATK" };
+        string[] types = { "small engine", "fuel tank", "ignition system", "rocket booster", "big engine", "battery", "satnav", "sensor", "radiator" };
+        string[] fuels = { "LH2/LOX", "RP-1/LOX", "CH4/LOX", "N2O4/MMH" };
+
         int initialEngineersNumber=20;
         int t2EngineersNumber=10;
         int engineersFired=5;
+        int maxCompanies = 10;
 
         int partsNumber=100;
 
-        int hangarsNumber=12;
+        bool firstGeneration = false;
 
         int spacecraftsNumber=100;
         int spacecraftsYearsFrom=1990;
         int spacecraftsYearsTo=1999;
-
-        int modelsNumber= 20;
 
         int servicesNumber = 50;
         int maxGrease = 10;
@@ -57,8 +61,8 @@ namespace GeneratorDanych
         int engineers;
         string csvName = "inzynierowie.csv";
 
-        DateTime startDate = new DateTime(2012, 4, 10);
-        DateTime endDate = new DateTime(2012, 10, 10);
+        DateTime startDate = new DateTime(2012, 11, 10);
+        DateTime endDate = new DateTime(2013, 4, 10);
 
         Random random;
 
@@ -98,11 +102,13 @@ namespace GeneratorDanych
             }
             this.partsNumber = 0;
             Console.WriteLine("Dodano rekordy części.");
-            for (int i = 0; i < this.hangarsNumber; i++)
+            if (firstGeneration)
             {
-                this.AddRandomHangar();
+                foreach (var color in colors)
+                {
+                    this.SaveHangar(color);
+                }
             }
-            this.hangarsNumber = 0;
             Console.WriteLine("Dodano rekordy hangarów.");
             for (int i = 0; i < this.spacecraftsNumber; i++)
             {
@@ -110,11 +116,13 @@ namespace GeneratorDanych
             }
             this.spacecraftsNumber = 0;
             Console.WriteLine("Dodano rekordy satków kosmicznych.");
-            foreach (var keyVal in models)
-            {
-                for (int i = 0; i < keyVal.Value.Length; i++)
+            if (firstGeneration)
+            {   foreach (var keyVal in models)
                 {
-                    SaveModel(keyVal.Value[i].Item1, keyVal.Key, keyVal.Value[i].Item2);
+                    for (int i = 0; i < keyVal.Value.Length; i++)
+                    {
+                        SaveModel(keyVal.Value[i].Item1, keyVal.Key, keyVal.Value[i].Item2);
+                    }
                 }
             }
             Console.WriteLine("Dodano rekordy modeli.");
@@ -189,6 +197,7 @@ namespace GeneratorDanych
                     action -= t2EngineersNumber;
                 }
             }
+            Console.WriteLine("generatrion done.");
         }
 
         private void AddRandomService()
@@ -224,11 +233,11 @@ namespace GeneratorDanych
         }
         private void AddRandomPart()
         {
-            this.SavePart(this.RandomString(5, 15), this.RandomString(10, 20));
+            this.SavePart(producents[random.Next(producents.Length)], types[random.Next(types.Length)]);
         }
         private void AddRandomHangar()
         {
-            this.SaveHangar(this.RandomString(5, 10));
+            this.SaveHangar(colors[random.Next(colors.Length)]);
         }
         private void AddRandomSpacecraft()
         {
@@ -236,12 +245,11 @@ namespace GeneratorDanych
         }
         private void AddRandomEngineer(DateTime engageDate)
         {
-            int id = engineers;
+            int id = engineers + 1;
             
             var csvFile = File.ReadAllLines(csvName);
             int gpi = random.Next(0, 100000);
-            bool gpiNotUnique = false;
-            foreach (var engineer in csvFile)
+            bool gpiNotUnique = false;foreach (var engineer in csvFile)
             {
                 if (engineer.Split(',')[1] == String.Format("{0}", gpi))
                 {
@@ -263,19 +271,20 @@ namespace GeneratorDanych
                 }
             }
             string master = "";
-            if (random.NextDouble() < 1f / 3f)
+            if (random.NextDouble() < 2f / 3f)
             {
-                master = String.Format("{0}", GetRandomMaster());
+                master = GetRandomMaster();
             }
+            int companies = random.Next(maxCompanies);
             string name = RandomString(5, 15);
-            string line = '\n' + String.Format("{0},{1},{2},{3},{4:yyyy,MM}",id, gpi, name, master, engageDate);
+            string line = '\n' + String.Format("{0},{1},{2},{3},{4},{5:yyyy,MM}",id, gpi, name, master, companies, engageDate);
             File.AppendAllText(csvName, line);
             engineers += 1;
         }
         private void AddRandomRefueling()
         {
             int spacecraftId = GetRandomSpacecraft();
-            SaveRefueling(random.Next(minRefuelingLiters, maxRefuelingLiters), spacecraftId, RandomString(10, 20),
+            SaveRefueling(random.Next(minRefuelingLiters, maxRefuelingLiters), spacecraftId, fuels[random.Next(fuels.Length)],
                 random.Next(minRefuelingTime, maxRefuelingTime), random.Next(minWaitingTime, maxWaitingTime));
         }
         private void AddRandomFix(DateTime currentDate)
@@ -355,8 +364,12 @@ namespace GeneratorDanych
             }
             return engineer;
         }
-        private int GetRandomMaster()
+        private string GetRandomMaster()
         {
+            if (engineers == 0)
+            {
+                return "";
+            }
             var csvFile = File.ReadAllLines(csvName);
             int master = GetRandomEngineer();
             var masterLine = csvFile[master];
@@ -365,7 +378,7 @@ namespace GeneratorDanych
                 master = GetRandomEngineer();
                 masterLine = csvFile[master];
             }
-            return master;
+            return String.Format("{0}", master);
         }
         private void SaveRefueling(int litres, int spacecraftId, string fuelType, int refuelingTime, int waitingTime)
         {

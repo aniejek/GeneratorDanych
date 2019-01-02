@@ -31,8 +31,9 @@ namespace GeneratorDanych
             };
             var generator = new Generator(sqlConnection);
             generator.Generate();
-
+            Console.WriteLine("Generator closing.");
             generator.CloseGenerator();
+            Console.WriteLine("Generator closed.");
         }
     }
 }

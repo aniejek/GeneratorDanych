@@ -9,7 +9,7 @@ drop table serwisy;
 create table Czesci(
 	id int identity(1,1) not null primary key,
 	typ varchar(20) not null,
-	producent varchar(15) not null
+	producent varchar(20) not null
 );
 
 create table Hangary(
