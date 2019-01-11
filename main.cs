@@ -8,8 +8,8 @@
 
 #region Namespaces
 using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using Microsoft.SqlServer.Dts.Pipeline.Wrapper;
 using Microsoft.SqlServer.Dts.Runtime.Wrapper;
 #endregion
@@ -21,29 +21,81 @@ using Microsoft.SqlServer.Dts.Runtime.Wrapper;
 [Microsoft.SqlServer.Dts.Pipeline.SSISScriptComponentEntryPointAttribute]
 public class ScriptMain : UserComponent
 {
-    IDTSConnectionManager100 connMgr;
-    SqlConnection sqlConn;
-    SqlDataReader sqlReader;
+    string[] smary = { "malo smaru", "srednio smaru", "duzo smaru" };
+    string[] sruby = { "malo srub", "srednio srub", "duzo srub" };
+    string[] klucze = { "uzyto kluczy", "nie uzyto kluczy" };
+    string[] wiertarki = { "uzyto wiertarek", "nie uzyto wiertarek" };
+    string[] srubokrety = { "uzyto srubokretow", "nie uzyto srubokretow" };
+
+    #region Help:  Using Integration Services variables and parameters
+    /* To use a variable in this script, first ensure that the variable has been added to
+     * either the list contained in the ReadOnlyVariables property or the list contained in
+     * the ReadWriteVariables property of this script component, according to whether or not your
+     * code needs to write into the variable.  To do so, save this script, close this instance of
+     * Visual Studio, and update the ReadOnlyVariables and ReadWriteVariables properties in the
+     * Script Transformation Editor window.
+     * To use a parameter in this script, follow the same steps. Parameters are always read-only.
+     *
+     * Example of reading from a variable or parameter:
+     *  DateTime startTime = Variables.MyStartTime;
+     *
+     * Example of writing to a variable:
+     *  Variables.myStringVariable = "new value";
+     */
+    #endregion
+
+    #region Help:  Using Integration Services Connnection Managers
+    /* Some types of connection managers can be used in this script component.  See the help topic
+     * "Working with Connection Managers Programatically" for details.
+     *
+     * To use a connection manager in this script, first ensure that the connection manager has
+     * been added to either the list of connection managers on the Connection Managers page of the
+     * script component editor.  To add the connection manager, save this script, close this instance of
+     * Visual Studio, and add the Connection Manager to the list.
+     *
+     * If the component needs to hold a connection open while processing rows, override the
+     * AcquireConnections and ReleaseConnections methods.
+     * 
+     * Example of using an ADO.Net connection manager to acquire a SqlConnection:
+     *  object rawConnection = Connections.SalesDB.AcquireConnection(transaction);
+     *  SqlConnection salesDBConn = (SqlConnection)rawConnection;
+     *
+     * Example of using a File connection manager to acquire a file path:
+     *  object rawConnection = Connections.Prices_zip.AcquireConnection(transaction);
+     *  string filePath = (string)rawConnection;
+     *
+     * Example of releasing a connection manager:
+     *  Connections.SalesDB.ReleaseConnection(rawConnection);
+     */
+    #endregion
+
+    #region Help:  Firing Integration Services Events
+    /* This script component can fire events.
+     *
+     * Example of firing an error event:
+     *  ComponentMetaData.FireError(10, "Process Values", "Bad value", "", 0, out cancel);
+     *
+     * Example of firing an information event:
+     *  ComponentMetaData.FireInformation(10, "Process Values", "Processing has started", "", 0, fireAgain);
+     *
+     * Example of firing a warning event:
+     *  ComponentMetaData.FireWarning(10, "Process Values", "No rows were received", "", 0);
+     */
+    #endregion
+
     /// <summary>
     /// This method is called once, before rows begin to be processed in the data flow.
     ///
     /// You can remove this method if you don't need to do anything here.
     /// </summary>
-    public override void AcquireConnections(object Transaction)
-    {
-        connMgr = this.Connections.Connection;
-        sqlConn = (SqlConnection)connMgr.AcquireConnection(null);
-    }
     public override void PreExecute()
     {
         base.PreExecute();
-        var cmd = sqlConn.CreateCommand();
-        cmd.CommandText = "SELECT data FROM naprawy";
-        sqlReader = cmd.ExecuteReader();
         /*
          * Add your code here
          */
     }
+
     /// <summary>
     /// This method is called after all the rows have passed through this component.
     ///
@@ -52,46 +104,39 @@ public class ScriptMain : UserComponent
     public override void PostExecute()
     {
         base.PostExecute();
-        sqlReader.Close();
         /*
          * Add your code here
          */
     }
+
     public override void CreateNewOutputRows()
     {
-        var oldest = new DateTime(2100, 12, 31);
-        var newest = new DateTime(1900, 1, 1);
-        while (sqlReader.Read())
+        foreach (var sruba in sruby)
         {
-            var current = sqlReader.GetDateTime(0);
-            if (DateTime.Compare(oldest, current) > 0)
+            foreach (var smar in smary)
             {
-                oldest = current;
-            }
-            if (DateTime.Compare(newest, current) < 0)
-            {
-                newest = current;
+                foreach (var srubokret in srubokrety)
+                {
+                    foreach (var wiertarka in wiertarki)
+                    {
+                        foreach (var klucz in klucze)
+                        {
+                            Output0Buffer.AddRow();
+                            Output0Buffer.klucze = klucz;
+                            Output0Buffer.wiertarki = wiertarka;
+                            Output0Buffer.smary = smar;
+                            Output0Buffer.sruby = sruba;
+                            Output0Buffer.srubokrety = srubokret;
+                        }
+                    }
+                }
             }
         }
-        for (var date = oldest; newest.CompareTo(date) >= 0; date = date.AddDays(1))
-        {
-            Output0Buffer.AddRow();
-            Output0Buffer.Rok = date.Year;
-            Output0Buffer.Miesiac = date.Month;
-            Output0Buffer.Dzien = date.Day;
-        }
-        //Output0Buffer.AddRow();
-        //Output0Buffer.Rocznik = oldest;
+
         /*
           Add rows by calling the AddRow method on the member variable named "<Output Name>Buffer".
           For example, call MyOutputBuffer.AddRow() if your output was named "MyOutput".
         */
-    }
-    public override void ReleaseConnections()
-    {
-
-        connMgr.ReleaseConnection(sqlConn);
-
     }
 
 }
